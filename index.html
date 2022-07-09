@@ -1,0 +1,140 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sketchfab Viewer API example</title>
+
+    <!-- Insert this script -->
+    <script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
+	<style>
+		html, body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 99.8%;
+			font-family: Arial, Helvetica, Sans-Serif;
+			text-decoration: none;
+		}
+		iframe {
+			border: none;
+			border-width: 0px;
+		}
+		#toolbar-top {
+			position: fixed;
+			z-index: 999;
+			left: 25%;
+			top: 1.5%;
+			width: 50%;
+			padding: 4px;
+			backdrop-filter: blur(3px);
+			background-color: rgba(255,255,255,0.1);
+			font-size: 12px;
+			color: black;
+			text-align: center;
+			border-radius: 5px;
+			box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.1);
+		}
+		#toolbar-top button, #toolbar-top input {
+			border-radius: 4px;
+			display: inline-block;
+			border: none;
+			padding: 4px;
+			backdrop-filter: blur(3px);
+			background-color: rgba(255,255,255,0.1);
+			box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.1);
+			cursor: pointer;
+		}
+		#toolbar-top label {
+			margin-left: 5px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="toolbar-top">
+		<button onclick="setView('left')">Left</button>
+		<button onclick="setView('right')">Right</button>
+		<button onclick="setView('front')">Front</button>
+		<button onclick="setView('rear')">Rear</button>
+		<button onclick="setView('top')">Top</button>
+		<button onclick="setView('bottom')">Bottom</button>
+		<label>Zoom: <input type="number" value="150000" id="zoom-value" oninput="setView(null,this.value)" onchange="setView(null,this.value)"></label>
+		<label>Model UID: <input type="text" value="7w7pAfrCfjovwykkEeRFLGw5SXS" id="model-uid"></label>
+		<button onclick="init()">Reload</button>
+	</div>
+    <iframe src="" width="100%" height="100%" id="api-frame" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    <script type="text/javascript">
+	
+	//var uid = localStorage.getItem('last-uid') ?? '96c6bb14737f4c7b9862496d9e3eaa4b'; // model uid, default: '7w7pAfrCfjovwykkEeRFLGw5SXS'
+	document.querySelector('#model-uid').value = localStorage.getItem('last-uid') ?? '7w7pAfrCfjovwykkEeRFLGw5SXS';
+	let storedLZ = parseFloat(localStorage.getItem('last-zoom'));
+	
+    var iframe = document.getElementById( 'api-frame' );
+    var client = new Sketchfab( iframe );
+	let api;
+	
+	let lastSide = 'left';
+	let lastZoom = storedLZ!=NaN && storedLZ ? storedLZ : 16000;
+	document.querySelector('#zoom-value').value = lastZoom;
+	
+	function setView(side, zoom) {
+		lastSide = side ?? lastSide;
+		lastZoom = zoom ?? lastZoom;
+		const sideViews = {
+			'left': [lastZoom,0,0],
+			'right': [-lastZoom,0,0],
+			'front': [0,-lastZoom,0],
+			'rear': [0,lastZoom,0],
+			'top': [0,0,lastZoom],
+			'bottom': [0,0,-lastZoom],
+		}
+		localStorage.setItem('last-zoom',lastZoom);
+		if(api) {
+			api.setCameraLookAt(sideViews[lastSide], [0, 0, 0], 1, function(err) {
+				if (!err) {
+					window.console.log('Camera moved to '+sideViews[lastSide]);
+				}
+			});
+		}
+	}
+	
+	function getView() {
+		if(api) {
+			api.getCameraLookAt(function(err, camera) {
+				window.console.log(`${camera.position}\n${camera.target}`);
+			});
+		}
+	}
+
+    function init() {
+		const uid = document.querySelector('#model-uid').value;
+		localStorage.setItem('last-uid',uid);
+		client.init(uid, {
+			success: function onSuccess(_api) {
+				api = _api;
+				api.start();
+				api.addEventListener('viewerready', function() {
+					console.log('Viewer API is ready');
+					api.getFov(function(err, fov) {
+						if (!err) {
+							window.console.log('FOV was', fov);
+						}
+					});
+					api.setFov(0.01, function(err, angle) {
+						if (!err) {
+							window.console.log('FOV set to', angle);
+						}
+					});
+					setView();
+				});
+			},
+			error: function onError() {
+				console.log('Viewer API error');
+			}
+		});
+	}
+	init();
+    </script>
+</body>
+</html>
