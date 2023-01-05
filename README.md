@@ -16,6 +16,12 @@ Auto saves the previous UID and zoom values.
   - If the FOV is set to `0` the viewer may break, then it needs to be refreshed (`Ctrl+R` / `F5`).
 
 With this tool any Sketchfab model can be made into a blueprint:
-- Install [Screenshotting](https://chrome.google.com/webstore/detail/full-page-screenshot-capt/pojgkmkfincpdkdgjepkmdekcahmckjp) (Chrome extension)
+- Install [GoFullPage](https://chrome.google.com/webstore/detail/gofullpage-full-page-scre/fdpohaocaechififmbbbbbknoalclacl) (Chrome extension)
 - Open [Combine images](https://www.quickpicturetools.com/en/combine_images/) (Web app)
-- Screenshot the `front`, `rear`, `top`, `side` standard views with the extension, and combine them with the web app.
+- Screenshot the `front`, `rear`, `top`, `side` standard views with the extension
+- Combine the resulting images with [Combine images](https://www.quickpicturetools.com/en/combine_images/)
+
+|||
+|-|-|
+|front|side|
+|rear|top|
